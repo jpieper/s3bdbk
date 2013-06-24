@@ -8,7 +8,7 @@ It uses a very simple format in S3, from which the original could be
 reconstructed with a shell script if need be.
 '''
 
-# Copyright 2011 Josh Pieper, jjp@pobox.com
+# Copyright 2011-2013 Josh Pieper, jjp@pobox.com
 
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -62,7 +62,7 @@ _HASH_FUNCTION = hashlib.sha224
 
 # Versioning information associated with this script.
 _BACKUP_VERSION = '1.0'
-_S3BDBK_VERSION = '0.1'
+_S3BDBK_VERSION = '0.2'
 
 class Progress(object):
     def __init__(self, args, operation_name):
@@ -420,7 +420,7 @@ def calculate_manifest_weight(previous, current):
     previous_date = date_from_manifest(previous)
     current_date = date_from_manifest(current)
     delta = abs(current_date - previous_date)
-    dt = delta.seconds + delta.microseconds * 1e-6
+    dt = delta.total_seconds()
     return (1 / dt) ** 2
 
 def weighted_choice_sub(weights):
