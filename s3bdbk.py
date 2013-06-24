@@ -416,12 +416,17 @@ def date_from_manifest(manifest):
     return datetime.datetime(int(ymd[0:4]), int(ymd[4:6]), int(ymd[6:8]),
                              int(hms[0:2]), int(hms[2:4]), int(hms[4:6]))
 
-def calculate_manifest_weight(previous, current):
+def calculate_manifest_weight(most_recent, previous, current):
     previous_date = date_from_manifest(previous)
     current_date = date_from_manifest(current)
     delta = abs(current_date - previous_date)
     dt = delta.total_seconds()
-    return (1 / dt) ** 2
+
+    recent_date = date_from_manifest(most_recent)
+    age = abs(recent_date - current_date).total_seconds()
+    if dt == 0:
+        return 0.0
+    return (1 / dt) ** 2 * (age ** 0.5)
 
 def weighted_choice_sub(weights):
     rnd = random.random() * sum(weights)
@@ -438,7 +443,8 @@ def select_manifest_to_remove(manifests):
     #  t=time in seconds since next prior backup
 
     manifests = sorted(manifests)
-    weights = [calculate_manifest_weight(manifests[i], manifests[i - 1])
+    weights = [calculate_manifest_weight(
+            manifests[-1], manifests[i], manifests[i - 1])
                for i in range(1, len(manifests) - 1)]
 
     # We cannot remove the first or last manifest.
