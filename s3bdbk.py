@@ -416,14 +416,20 @@ def date_from_manifest(manifest):
     return datetime.datetime(int(ymd[0:4]), int(ymd[4:6]), int(ymd[6:8]),
                              int(hms[0:2]), int(hms[2:4]), int(hms[4:6]))
 
+def total_seconds(td):
+    # We could just use timedelta.total_seconds() if this was python
+    # 2.7 or better.
+    return ((td.microseconds +
+             (td.seconds + td.days * 24 * 3600) * 10**6) / float(10**6))
+
 def calculate_manifest_weight(most_recent, previous, current):
     previous_date = date_from_manifest(previous)
     current_date = date_from_manifest(current)
     delta = abs(current_date - previous_date)
-    dt = delta.total_seconds()
+    dt = total_seconds(delta)
 
     recent_date = date_from_manifest(most_recent)
-    age = abs(recent_date - current_date).total_seconds()
+    age = total_seconds(abs(recent_date - current_date))
     if dt == 0:
         return 0.0
     return (1 / dt) ** 2 * (age ** 0.5)
