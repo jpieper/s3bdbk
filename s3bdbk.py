@@ -229,6 +229,8 @@ def get_current_name(storage):
 
 
 def do_backup(args):
+    start_time = time.time()
+    
     storage = make_storage(args)
     block = open(args.block, 'rb')
     progress = Progress(args, 'backup')
@@ -283,7 +285,10 @@ def do_backup(args):
 
     if args.verbose:
         print ' ' * 75,
-        print "\nWrote backup to: '%s'" % manifest_name
+
+    end_time = time.time()
+    print "\nWrote backup to: '%s' in %d seconds" % (
+        manifest_name, int(end_time - start_time))
 
     if args.limit is not None:
         do_limit(storage, args)
@@ -468,15 +473,14 @@ def do_limit(storage, args):
     if len(manifests) < limit:
         return
 
+    print 'Existing backups exceed limit, %d > %d' % (
+        len(manifests), limit)
     if args.verbose:
-        print 'Existing backups exceed limit, %d > %d' % (
-            len(manifests), limit)
         print ''.join(['  %s\n' % x for x in manifests])
 
     while len(manifests) > limit:
         to_remove = select_manifest_to_remove(manifests)
-        if args.verbose:
-            print "Purging old backup manifest: '%s'" % to_remove
+        print "Purging old backup manifest: '%s'" % to_remove
         storage.remove(to_remove)
         manifests.remove(to_remove)
         
