@@ -8,7 +8,7 @@ It uses a very simple format in S3, from which the original could be
 reconstructed with a shell script if need be.
 '''
 
-# Copyright 2011-2013 Josh Pieper, jjp@pobox.com
+# Copyright 2011-2015 Josh Pieper, jjp@pobox.com
 
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -101,6 +101,10 @@ class S3Storage(object):
         import boto.s3.connection
         import ConfigParser
 
+        # Enable this if you need help debugging boto.
+        #
+        # boto.set_stream_logger('boto')
+
         if args.access is None or args.secret is None:
             # Try to get these from a config file.
             parser = ConfigParser.SafeConfigParser()
@@ -125,7 +129,13 @@ class S3Storage(object):
 
     def store(self, name, data, progress_function=None):
         key = self._bucket.new_key(name)
-        key.set_contents_from_string(data, cb=progress_function)
+	try:
+            key.set_contents_from_string(data, cb=progress_function)
+        except:
+            sys.stderr.write(
+                '\nError when writing name=%s len(data)=%d key=%s\n' % (
+                    name, len(data), repr(key)))
+            raise
 
     def load(self, name, progress_function=None):
         key = self._bucket.get_key(name)
@@ -382,7 +392,7 @@ def do_list(args):
 
 def do_version(args):
     print 's3bdbk.py version %s' % _S3BDBK_VERSION
-    print 'Copyright 2011 Josh Pieper'
+    print 'Copyright 2011-2015 Josh Pieper'
     print
     return 0
 
